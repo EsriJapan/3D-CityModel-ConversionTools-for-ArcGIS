@@ -31,7 +31,7 @@ XMLFIELDNAME = "xml_genericAttributeSet"
 LANDUSE_USAGE_FILE = "LandUse_genUsage.xml"
 
 #コード値ドメインを適用するフィーチャクラス名
-FCNAMES = ["lod0_LandUse"]
+FCNAMES = ["lod1_LandUse"]
 
 
 def convertXmlfieldToFields(fc):
