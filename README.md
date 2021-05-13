@@ -2,6 +2,7 @@
 # 概要
 「3D 都市モデルデータ変換ツール for ArcGIS」 は、[PLATEAU](https://www.mlit.go.jp/plateau/) で整備し、G空間情報センターで公開している[3D都市モデル](https://www.geospatial.jp/ckan/dataset/plateau)（CityGML）のデータを、ArcGIS で利用可能な[ファイル ジオデータベース](https://pro.arcgis.com/ja/pro-app/latest/help/data/geodatabases/manage-file-gdb/file-geodatabases.htm) へ変換するツールです。  
 本ツールで変換可能なデータは、[3D 都市モデル標準製品仕様書 series No.01（2021/03/26　1.0.0版）](https://www.mlit.go.jp/plateau/file/libraries/doc/plateau_doc_0001_ver01.pdf) に対応した 3D都市モデル（東京 23 区、および全国55都市）です。  
+本ツールは、国土交通省の[Project PLATEAU](https://www.mlit.go.jp/plateau/) で、国土交通省都市局、国際航業株式会社、ESRIジャパン株式会社が共同で作成・開発したものです。
   
 ## 対応データの一覧
 
