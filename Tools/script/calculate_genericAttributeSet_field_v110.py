@@ -81,13 +81,16 @@ def convertXmlfieldToFields(fc):
         
         # UpdateCursor を使って、フィールドを更新
         update_fields = [c.split(":")[0] for c in df.columns]
-        arcpy.AddMessage(u"{0}: のフィールドに値を展開します".format(update_fields))
-        i = 0
-        with arcpy.da.UpdateCursor(fc, update_fields) as cur:
-            for r in cur:
-                r = df.values[i] # 1行を取得
-                cur.updateRow(r) # update_fieldsに指定したものが DataFrame のカラムの並び順なのでそのまま渡す
-                i += 1
+        if len(update_fields) > 0:
+            arcpy.AddMessage(u"{0}: のフィールドに値を展開します".format(update_fields))
+            i = 0
+            with arcpy.da.UpdateCursor(fc, update_fields) as cur:
+                for r in cur:
+                    r = df.values[i] # 1行を取得
+                    cur.updateRow(r) # update_fieldsに指定したものが DataFrame のカラムの並び順なのでそのまま渡す
+                    i += 1
+        else:
+            arcpy.AddWarning(u"対象フィールド が存在しないため、xml_genericAttributeSet　展開処理はスキップしました")
         
         # 後始末
         del xmlvalues
