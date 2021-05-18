@@ -1,4 +1,4 @@
-# 3D-CityModel-ConvertionTools-for-ArcGIS
+# 3D-CityModel-ConversionTools-for-ArcGIS
 # 概要
 「3D 都市モデルデータ変換ツール for ArcGIS」 は、[PLATEAU](https://www.mlit.go.jp/plateau/) で整備し、G空間情報センターで公開している[3D都市モデル](https://www.geospatial.jp/ckan/dataset/plateau)（CityGML）のデータを、ArcGIS で利用可能な[ファイル ジオデータベース](https://pro.arcgis.com/ja/pro-app/latest/help/data/geodatabases/manage-file-gdb/file-geodatabases.htm) へ変換するツールです。  
 本ツールで変換可能なデータは、[3D 都市モデル標準製品仕様書 series No.01（2021/03/26　1.0.0版）](https://www.mlit.go.jp/plateau/file/libraries/doc/plateau_doc_0001_ver01.pdf) に対応した 3D都市モデル（東京 23 区、および全国55都市）です。  
@@ -28,7 +28,7 @@
 |洪水浸水想定区域、津波浸水想定区域||〇|lod1_WaterBody|
 |災害リスク||〇|lod0_GenericCityObject|
 
-※ 変換されるファイル ジオデータベースの詳細な定義は、[3D 都市モデルデータ変換ツール for ArcGIS 操作マニュアルの付属資料](https://github.com/EsriJapan/3D-CityModel-ConvertionTools-for-ArcGIS/blob/main/Doc/3D%E9%83%BD%E5%B8%82%E3%83%A2%E3%83%87%E3%83%AB%E3%83%87%E3%83%BC%E3%82%BF%E5%A4%89%E6%8F%9B%E3%83%84%E3%83%BC%E3%83%AB%20for%20ArcGIS%E6%93%8D%E4%BD%9C%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB%201.1.1%E7%89%88%EF%BC%88%E6%9D%B1%E4%BA%AC23%E5%8C%BA%E3%83%BB55%E9%83%BD%E5%B8%82%E7%89%88%EF%BC%89_%E4%BB%98%E5%B1%9E%E8%B3%87%E6%96%99.xlsx)をご参照ください。
+※ 変換されるファイル ジオデータベースの詳細な定義は、[3D 都市モデルデータ変換ツール for ArcGIS 操作マニュアルの付属資料](https://github.com/EsriJapan/3D-CityModel-ConversionTools-for-ArcGIS/blob/main/Doc/3D%E9%83%BD%E5%B8%82%E3%83%A2%E3%83%87%E3%83%AB%E3%83%87%E3%83%BC%E3%82%BF%E5%A4%89%E6%8F%9B%E3%83%84%E3%83%BC%E3%83%AB%20for%20ArcGIS%E6%93%8D%E4%BD%9C%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB%201.1.1%E7%89%88%EF%BC%88%E6%9D%B1%E4%BA%AC23%E5%8C%BA%E3%83%BB55%E9%83%BD%E5%B8%82%E7%89%88%EF%BC%89_%E4%BB%98%E5%B1%9E%E8%B3%87%E6%96%99.xlsx)をご参照ください。
 
 ## 動作環境
 本ツールを実行するには、バージョン 2.6 以上のArcGIS Pro とData Interoperability エクステンション をインストールし、ライセンスを有効化している必要があります。  
@@ -37,8 +37,8 @@
 * [Data Interoperability エクステンションのインストール](https://pro.arcgis.com/ja/pro-app/latest/help/data/data-interoperability/install-the-data-interoperability-extension.htm)
 
 ### 利用方法
-本ツールを使って変換するまでには、大まかに次のステップが必要です。操作方法の詳細は[3D 都市モデルデータ変換ツール for ArcGIS 操作マニュアル](https://github.com/EsriJapan/3D-CityModel-ConvertionTools-for-ArcGIS/blob/main/Doc/3D%E9%83%BD%E5%B8%82%E3%83%A2%E3%83%87%E3%83%AB%E3%83%87%E3%83%BC%E3%82%BF%E5%A4%89%E6%8F%9B%E3%83%84%E3%83%BC%E3%83%AB%20for%20ArcGIS%E6%93%8D%E4%BD%9C%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB%201.1.1%E7%89%88%EF%BC%88%E6%9D%B1%E4%BA%AC23%E5%8C%BA%E3%83%BB55%E9%83%BD%E5%B8%82%E7%89%88%EF%BC%89.pdf) をご参照ください。
-* [3D 都市モデルデータ変換ツール for ArcGIS をダウンロード](https://github.com/EsriJapan/3D-CityModel-ConvertionTools-for-ArcGIS/releases/download/v1.1.1/3DCityModel_convert_v111.zip)します。
+本ツールを使って変換するまでには、大まかに次のステップが必要です。操作方法の詳細は[3D 都市モデルデータ変換ツール for ArcGIS 操作マニュアル](https://github.com/EsriJapan/3D-CityModel-ConversionTools-for-ArcGIS/blob/main/Doc/3D%E9%83%BD%E5%B8%82%E3%83%A2%E3%83%87%E3%83%AB%E3%83%87%E3%83%BC%E3%82%BF%E5%A4%89%E6%8F%9B%E3%83%84%E3%83%BC%E3%83%AB%20for%20ArcGIS%E6%93%8D%E4%BD%9C%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB%201.1.1%E7%89%88%EF%BC%88%E6%9D%B1%E4%BA%AC23%E5%8C%BA%E3%83%BB55%E9%83%BD%E5%B8%82%E7%89%88%EF%BC%89.pdf) をご参照ください。
+* [3D 都市モデルデータ変換ツール for ArcGIS をダウンロード](https://github.com/EsriJapan/3D-CityModel-ConversionTools-for-ArcGIS/releases/download/v1.1.1/3DCityModel_convert_v111.zip)します。
 * ダウンロードしたZIP ファイルを、任意の場所に解凍します。
 * ArcGIS Pro を起動し、フォルダー接続の追加 で、解凍したフォルダを指定します。
 * G空間情報センターから、必要な3D都市モデル（CityGML）のデータをダウンロードし、解凍しておきます。
