@@ -1,12 +1,18 @@
 # coding : utf-8
 """
-Name        :calculate_genericAttributeSet_field_v110.py
+Name        :calculate_genericAttributeSet_field_v111.py
 Purpose     :ワークベンチを使って、3D都市モデルの汎用属性(gen:stringAttribute)と
              汎用属性セット(gen:genericAttributeSet) を、xml_genericAttributeSet フィールドに入れてある。
              そのXMLを展開して、フィールドを作成し、値をフィールドに格納するまでの処理を後処理で行うツール
+             
+            v110 → v111 の更新内容
+             ・メモリ対策を見直し
+             ・進捗表示のメッセージを追加
+             ・xml_genericAttributeSetの展開時、仕様上入ってこないはずのgen_FIDを除外する処理を追加
 Author      :
 Copyright   :
 Created     :2021/03/24
+Last Updated:2021/06/16
 ArcGIS Version: ArcGIS Pro 2.6 以上
 """
 
@@ -19,7 +25,7 @@ XMLFIELDNAME = "xml_genericAttributeSet"
 
 #適用するフィーチャークラス名 の一覧を定義
 #FGDB内での対象フィーチャクラスを追加する場合、ここにフィーチャクラス名を追加すると処理対象になります。
-FCNAMES = ["lod0_Building", "lod1_Building", "lod2_Building", "lod0_LandUse", "lod0_GenericCityObject", "lod0_WaterBody", "lod1_WaterBody"]
+FCNAMES = ["lod0_Building", "lod1_Building", "lod2_Building", "lod0_LandUse", "lod0_GenericCityObject", "lod1_WaterBody"] #"lod0_WaterBody", 
 
 def fieldChecker(names):
     '''
@@ -39,6 +45,8 @@ def fieldChecker(names):
 def createRowFromXmlfield(field_value):
     '''
     xml_genericAttributeSet に格納されたXMLから'name:type' をキーにしたディクショナリを作成
+    v111:メモリ対策の見直し
+        :仕様上入ってこないはず展開を除外するフィールド["gen_FID:TEXT"]
     '''
     root = et.fromstring(field_value)
     names = [c.attrib['name'] for c in root]
@@ -47,25 +55,41 @@ def createRowFromXmlfield(field_value):
     i = 0
     for c in root:
         key = new_names[i] + ":{0}".format(c.attrib["type"]) # key を name:type の形式にする
-        row_dict[key] = c.text
+        if new_names[i] != "gen_FID" :
+            row_dict[key] = c.text
         i += 1
+        c.clear()
+    root.clear()
+    del names, new_names
     return row_dict
 
 def convertXmlfieldToFields(fc):
     '''
     指定フィーチャクラス の xml_genericAttributeSet をフラットに展開する処理
+    v111:メモリ対策の見直し、進捗表示のメッセージを追加
     '''
     blResult = True
     try:
         arcpy.AddMessage(u"{0} の xml_genericAttributeSet　展開処理を開始します".format(fc))
         
-        # 全レコードの xml_genericAttributeSet　を展開したものをDataFrame に格納
+        # v111: 進捗表示のメッセージ用に追加
+        cnt = 0
+        num = int(arcpy.GetCount_management(fc).getOutput(0))
+        
+        # v111: 全レコードの xml_genericAttributeSet　を展開したものをDataFrame に格納(メモリ対策を見直し)
         rows = []
-        xmlvalues = [row[0] for row in arcpy.da.SearchCursor(fc, XMLFIELDNAME)]
-        for xmlvalue in xmlvalues:
-            row = createRowFromXmlfield(xmlvalue)
-            rows.append(row)
+        with arcpy.da.SearchCursor(fc, XMLFIELDNAME) as scur:
+            for r in scur:
+                cnt += 1
+                if (cnt == 1) or (cnt == num) or (cnt % 10000 == 1):
+                    s = u"{0}/{1}の xml_genericAttributeSet　読込処理中・・・".format(cnt, num)
+                    arcpy.AddMessage(s)                
+                xmlvalue = r[0]
+                row = createRowFromXmlfield(xmlvalue)
+                rows.append(row)
         df = pd.DataFrame(data=rows)
+        # 後始末
+        del rows
         
         # フィールドの追加
         lstFields = arcpy.ListFields(fc)
@@ -84,8 +108,13 @@ def convertXmlfieldToFields(fc):
         if len(update_fields) > 0:
             arcpy.AddMessage(u"{0}: のフィールドに値を展開します".format(update_fields))
             i = 0
+            cnt = 0
             with arcpy.da.UpdateCursor(fc, update_fields) as cur:
                 for r in cur:
+                    cnt += 1
+                    if (cnt == 1) or (cnt == num) or (cnt % 10000 == 1):
+                        s = u"{0}/{1}の xml_genericAttributeSet　展開処理中・・・".format(cnt, num)
+                        arcpy.AddMessage(s)
                     r = df.values[i] # 1行を取得
                     cur.updateRow(r) # update_fieldsに指定したものが DataFrame のカラムの並び順なのでそのまま渡す
                     i += 1
@@ -93,8 +122,6 @@ def convertXmlfieldToFields(fc):
             arcpy.AddWarning(u"対象フィールド が存在しないため、xml_genericAttributeSet　展開処理はスキップしました")
         
         # 後始末
-        del xmlvalues
-        del rows
         del df
 
         arcpy.AddMessage(u"xml_genericAttributeSet　展開処理を終了しました")
@@ -113,7 +140,12 @@ def main():
         arcpy.AddMessage(u"処理開始：")
 
         input_gdb = arcpy.GetParameterAsText(0)
-
+        
+        # v111: 入力値のチェックを追加
+        if os.path.splitext(input_gdb)[1].upper() != ".GDB":
+            arcpy.AddError(u"{0} は3D都市モデルの変換先ファイル ジオデータベースを選択する必要があります".format(input_gdb))
+            return 
+ 
         arcpy.env.overwriteOutput = True
         
         arcpy.env.workspace = input_gdb

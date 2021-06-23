@@ -1,6 +1,6 @@
 # coding:utf-8
 """
-Name        :assign_landuseAttributes_v110.py
+Name        :assign_landuseAttributes_v111.py
 Purpose     :3D都市モデルで土地利用（luse）は、自治体拡張が可能な形式で定義されてているため、
              汎用属性セット(gen:genericAttributeSet) を、xml_genericAttributeSet フィールドに入れる処理をワークベンチで行い、、
              そのXMLを展開して、フィールドを作成し、値をフィールドに格納するまでの処理を後処理で行うためのツール。
@@ -10,9 +10,13 @@ Purpose     :3D都市モデルで土地利用（luse）は、自治体拡張が�
              
              また、XMLを展開してフィールドに値を展開後、[codelists] - [LandUse_genUsage.xml] の中身を見て、コード値ドメインの定義とフィールドへの適用をこのツールで行う
              
+            v110 → v111 の更新内容
+             ・メモリ対策を見直し
+             ・進捗表示のメッセージを追加
 Author      :
 Copyright   :
 Created     :2021/03/25
+Last Updated:2021/06/09
 ArcGIS Version: ArcGIS Pro 2.6 以上
 """
 import arcpy
@@ -21,8 +25,8 @@ import xml.etree.ElementTree as et
 import pandas as pd
 
 # 使いまわし可能な関数がそれぞれをimport 
-import calculate_genericAttributeSet_field_v110 as calgen
-import assign_extendedAttributes_v110 as exattr
+import calculate_genericAttributeSet_field_v111 as calgen
+import assign_extendedAttributes_v111 as exattr
 
 #ワークベンチで処理した結果を格納してあるフィールド名
 XMLFIELDNAME = "xml_genericAttributeSet"
@@ -38,18 +42,30 @@ def convertXmlfieldToFields(fc):
     '''
     指定フィーチャクラス の xml_genericAttributeSet をフラットに展開する処理
     (calculate_genericAttributeSet_field_v10x.py からコピーしてきてdataframe も返却するようにした）
+    v111:進捗表示のメッセージを追加
     '''
     blResult = True
     try:
         arcpy.AddMessage(u"{0} の xml_genericAttributeSet　展開処理を開始します".format(fc))
         
-        # 全レコードの xml_genericAttributeSet　を展開したものをDataFrame に格納
+        # v111: 進捗表示のメッセージ用に追加
+        cnt = 0
+        num = int(arcpy.GetCount_management(fc).getOutput(0))
+        
+        # v111: 全レコードの xml_genericAttributeSet　を展開したものをDataFrame に格納(メモリ対策を見直し)
         rows = []
-        xmlvalues = [row[0] for row in arcpy.da.SearchCursor(fc, XMLFIELDNAME)]
-        for xmlvalue in xmlvalues:
-            row = calgen.createRowFromXmlfield(xmlvalue) #createRowFromXmlfield(xmlvalue)
-            rows.append(row)
+        with arcpy.da.SearchCursor(fc, XMLFIELDNAME) as scur:
+            for r in scur:
+                cnt += 1
+                if (cnt == 1) or (cnt == num) or (cnt % 10000 == 1):
+                    s = u"{0}/{1}の xml_genericAttributeSet　読込処理中・・・".format(cnt, num)
+                    arcpy.AddMessage(s)                
+                xmlvalue = r[0]
+                row = calgen.createRowFromXmlfield(xmlvalue)
+                rows.append(row)
         df = pd.DataFrame(data=rows)
+        # 後始末
+        del rows
         
         # フィールドの追加
         lstFields = arcpy.ListFields(fc)
@@ -68,18 +84,20 @@ def convertXmlfieldToFields(fc):
         if len(update_fields) > 0:           
             arcpy.AddMessage(u"{0}: のフィールドに値を展開します".format(update_fields))
             i = 0
+            cnt = 0
             with arcpy.da.UpdateCursor(fc, update_fields) as cur:
                 for r in cur:
+                    cnt += 1
+                    if (cnt == 1) or (cnt == num) or (cnt % 10000 == 1):
+                        s = u"{0}/{1}の xml_genericAttributeSet　展開処理中・・・".format(cnt, num)
+                        arcpy.AddMessage(s)
                     r = df.values[i] # 1行を取得
                     cur.updateRow(r) # update_fieldsに指定したものが DataFrame のカラムの並び順なのでそのまま渡す
                     i += 1
         else:
             arcpy.AddWarning(u"対象フィールド が存在しないため、xml_genericAttributeSet　展開処理はスキップしました")
         
-        # 後始末
-        del xmlvalues
-        del rows
-        #del df
+        # 後始末-不要になったので削除
 
         arcpy.AddMessage(u"xml_genericAttributeSet　展開処理を終了しました")
     except arcpy.ExecuteError:
@@ -103,7 +121,7 @@ def main():
 
         # 入力値のチェック
         if filename != LANDUSE_USAGE_FILE:
-            arcpy.AddError(u"{0} というファイルを選択する必要があります".format(LANDUSE_USAGE_FILE))
+            arcpy.AddError(u"{0} というファイルを選択する必要があります(大文字小文字を含め同一である必要があります)".format(LANDUSE_USAGE_FILE)) #v111:メッセージ変更
             return
         if os.path.splitext(gdb)[1].upper() != ".GDB":
             arcpy.AddError(u"{0} は3D都市モデルの変換先ファイル ジオデータベースを選択する必要があります".format(gdb))
@@ -139,21 +157,21 @@ def main():
                 # 1) xml_genericAttributeSet をフィールドに展開する
                 if int(arcpy.GetCount_management(fc)[0]) > 0:
                     bl, df = convertXmlfieldToFields(fc)
+                    
+                    # 3) ドメインを lod0_LandUse フィーチャクラスのフィールドに適用（上記で追加したフィールド）
+                    fieldNames = [f.name for f in arcpy.ListFields(fc)]
+                    for column in df.columns:
+                        fieldName, fieldType = column.split(":")
+                        if fieldName in fieldNames:
+                            arcpy.AddMessage(u"{0} の{1} フィールドに{2} ドメインを適用します".format(fc, fieldName, domainName))
+                            arcpy.AssignDomainToField_management(fc, fieldName, domainName)
+                        else:
+                            arcpy.AddWarning(u"{0} に{1} フィールドが定義されていないため、ドメインの適用をスキップします".format(fc, fieldName))
+                    
+                    #　後始末
+                    del df
                 else:
                     arcpy.AddWarning(u"{0} の レコードがないため処理をスキップします".format(fc))
-                
-                # 3) ドメインを lod0_LandUse フィーチャクラスのフィールドに適用（上記で追加したフィールド）
-                fieldNames = [f.name for f in arcpy.ListFields(fc)]
-                for column in df.columns:
-                    fieldName, fieldType = column.split(":")
-                    if fieldName in fieldNames:
-                        arcpy.AddMessage(u"{0} の{1} フィールドに{2} ドメインを適用します".format(fc, fieldName, domainName))
-                        arcpy.AssignDomainToField_management(fc, fieldName, domainName)
-                    else:
-                        arcpy.AddWarning(u"{0} に{1} フィールドが定義されていないため、ドメインの適用をスキップします".format(fc, fieldName))
-        
-        # 後始末
-        del df
 
         arcpy.AddMessage(u"処理終了：")
     except arcpy.ExecuteError:
