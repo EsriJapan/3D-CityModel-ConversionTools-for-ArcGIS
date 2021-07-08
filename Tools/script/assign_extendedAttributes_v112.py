@@ -1,23 +1,27 @@
 # coding:utf-8
 """
-Name        :assign_extendedAttributes_v111.py
+Name        :assign_extendedAttributes_v112.py
 Purpose     :3D都市モデルで拡張属性の定義が標準対応、および自治体拡張が可能な形式で定義されてているため、
             [codelists] - [extendedAttribute_key.xml] の中身を見て、各拡張属性のコード値ドメインの定義とフィールドへの適用を後処理で行うツール
-            後処理といってもテンプレートGDB　： Standard_XXX.gdb に適用した後に実行でも構わない
+            後処理といってもテンプレートGDB  ： Standard_XXX.gdb に適用した後に実行でも構わない
             
             v110 → v111 の更新内容
              ・メモリ対策を見直し
              ・extendedAttribute_keyX.xml ファイル内の <gml:name>ExtendedAttribute_keyX</gml:name> との整合チェックを追加
              ・空の<gml:dictionaryEntry>要素への対応
+            v111 → v112 の更新内容
+             ・コード値に対応する説明がない不正なデータはスキップするよう処理を追加
+             ・例外発生時のtraceback を追加            
 Author      :
 Copyright   :
 Created     :2021/03/24
-Last Updated:2021/06/22
+Last Updated:2021/07/08
 ArcGIS Version: ArcGIS Pro 2.6 以上
 """
 import arcpy
 import os
 import xml.etree.ElementTree as et
+import traceback #v112
 
 #拡張属性を定義しているファイル名
 EXTATTR_KEYFILE = "extendedAttribute_key.xml"
@@ -125,10 +129,10 @@ def main():
             if os.path.exists(extendedAttribute_key_xml):
                 domainName, domainDict = createDomainValues(extendedAttribute_key_xml)
                 # v111: extendedAttribute_keyX.xml と、<gml:name>ExtendedAttribute_keyX</gml:name> の整合チェックを追加。
-                # （<gml:name>ExtendedAttribute_key</gml:name>　で番号が入っていないケースがあるため）
+                # （<gml:name>ExtendedAttribute_key</gml:name>  で番号が入っていないケースがあるため）
                 fname = os.path.splitext(xmlfile)[0]
                 if domainName.upper() != fname.upper():
-                    arcpy.AddError(u"{0} ファイル内の <gml:name>{1}</gml:name>　の定義が正しくないため、このファイルで定義されている拡張属性のコード値ドメイン定義とフィールドへの適用は実行できません".format(xmlfile, domainName))
+                    arcpy.AddError(u"{0} ファイル内の <gml:name>{1}</gml:name>  の定義が正しくないため、このファイルで定義されている拡張属性のコード値ドメイン定義とフィールドへの適用は実行できません".format(xmlfile, domainName))
                 else:
                     domainDesc = xmlfiles[xmlfile]
                     # ドメインの作成（既存ドメインが存在する場合は処理しない）
@@ -139,8 +143,11 @@ def main():
                         # 作成したドメインにコードと説明を追加
                         for code in domainDict:
                             codeDesc = domainDict[code]
-                            arcpy.AddMessage(u"{0}: ドメイン に{1} , {2} のコードを追加します".format(domainName,code, codeDesc))
-                            arcpy.AddCodedValueToDomain_management(gdb, domainName, code, codeDesc)
+                            if (codeDesc != None): #v112: codeDesc  が空文字の場合への対応                            
+                                arcpy.AddMessage(u"{0}: ドメイン に{1} , {2} のコードを追加します".format(domainName,code,codeDesc))
+                                arcpy.AddCodedValueToDomain_management(gdb, domainName, code, codeDesc)
+                            else:
+                                arcpy.AddWarning(u"{0}: ドメイン に追加する{1} のコードの説明がないので処理をスキップします".format(domainName,code))
                         #print("Add code " code)
                     else:
                         arcpy.AddWarning(u"{0}: ドメイン はすでに存在しているので、ドメイン 作成の処理はスキップします".format(domainName))
@@ -160,7 +167,11 @@ def main():
     except arcpy.ExecuteError:
         arcpy.AddError(arcpy.GetMessages(2))
     except Exception as e:
-        arcpy.AddError(e.args[0])
+        err = e.args[0]
+        tb = sys.exc_info()[2]
+        tbinfo = traceback.format_tb(tb)[0]
+        pymsg = "PYTHON ERRORS:\nTraceback info:\n" + tbinfo + "\nError Info:\n" + str(err)
+        arcpy.AddError(pymsg)
 
 if __name__ == '__main__':
     main()
