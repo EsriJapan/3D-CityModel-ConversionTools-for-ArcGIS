@@ -1,6 +1,6 @@
 # coding:utf-8
 """
-Name        :assign_landuseAttributes_v111.py
+Name        :assign_landuseAttributes_v112.py
 Purpose     :3D都市モデルで土地利用（luse）は、自治体拡張が可能な形式で定義されてているため、
              汎用属性セット(gen:genericAttributeSet) を、xml_genericAttributeSet フィールドに入れる処理をワークベンチで行い、、
              そのXMLを展開して、フィールドを作成し、値をフィールドに格納するまでの処理を後処理で行うためのツール。
@@ -13,20 +13,26 @@ Purpose     :3D都市モデルで土地利用（luse）は、自治体拡張が�
             v110 → v111 の更新内容
              ・メモリ対策を見直し
              ・進捗表示のメッセージを追加
+            v111 → v112 の更新内容
+             ・展開するxml_genericAttributeSet に、gen_1/2500図郭 などがある場合の対応を追加（calgenの呼び出しで対応）
+             ・例外発生時のtraceback を追加
+             ・xml_genericAttributeSet の展開前に、AddField_management で追加したフィールド名の変更されていないか確認処理を追加（calgenの呼び出しで対応）
+             ・コード値に対応する説明がない不正なデータはスキップするよう処理を追加             
 Author      :
 Copyright   :
 Created     :2021/03/25
-Last Updated:2021/06/09
+Last Updated:2021/06/30
 ArcGIS Version: ArcGIS Pro 2.6 以上
 """
 import arcpy
 import os
 import xml.etree.ElementTree as et
 import pandas as pd
+import traceback #v112
 
 # 使いまわし可能な関数がそれぞれをimport 
-import calculate_genericAttributeSet_field_v111 as calgen
-import assign_extendedAttributes_v111 as exattr
+import calculate_genericAttributeSet_field_v112 as calgen
+import assign_extendedAttributes_v112 as exattr
 
 #ワークベンチで処理した結果を格納してあるフィールド名
 XMLFIELDNAME = "xml_genericAttributeSet"
@@ -46,19 +52,19 @@ def convertXmlfieldToFields(fc):
     '''
     blResult = True
     try:
-        arcpy.AddMessage(u"{0} の xml_genericAttributeSet　展開処理を開始します".format(fc))
+        arcpy.AddMessage(u"{0} の xml_genericAttributeSet  展開処理を開始します".format(fc))
         
         # v111: 進捗表示のメッセージ用に追加
         cnt = 0
         num = int(arcpy.GetCount_management(fc).getOutput(0))
         
-        # v111: 全レコードの xml_genericAttributeSet　を展開したものをDataFrame に格納(メモリ対策を見直し)
+        # v111: 全レコードの xml_genericAttributeSet  を展開したものをDataFrame に格納(メモリ対策を見直し)
         rows = []
         with arcpy.da.SearchCursor(fc, XMLFIELDNAME) as scur:
             for r in scur:
                 cnt += 1
                 if (cnt == 1) or (cnt == num) or (cnt % 10000 == 1):
-                    s = u"{0}/{1}の xml_genericAttributeSet　読込処理中・・・".format(cnt, num)
+                    s = u"{0}/{1}の xml_genericAttributeSet  読込処理中・・・".format(cnt, num)
                     arcpy.AddMessage(s)                
                 xmlvalue = r[0]
                 row = calgen.createRowFromXmlfield(xmlvalue)
@@ -81,30 +87,42 @@ def convertXmlfieldToFields(fc):
         
         # UpdateCursor を使って、フィールドを更新
         update_fields = [c.split(":")[0] for c in df.columns]
-        if len(update_fields) > 0:           
-            arcpy.AddMessage(u"{0}: のフィールドに値を展開します".format(update_fields))
-            i = 0
-            cnt = 0
-            with arcpy.da.UpdateCursor(fc, update_fields) as cur:
-                for r in cur:
-                    cnt += 1
-                    if (cnt == 1) or (cnt == num) or (cnt % 10000 == 1):
-                        s = u"{0}/{1}の xml_genericAttributeSet　展開処理中・・・".format(cnt, num)
-                        arcpy.AddMessage(s)
-                    r = df.values[i] # 1行を取得
-                    cur.updateRow(r) # update_fieldsに指定したものが DataFrame のカラムの並び順なのでそのまま渡す
-                    i += 1
-        else:
-            arcpy.AddWarning(u"対象フィールド が存在しないため、xml_genericAttributeSet　展開処理はスキップしました")
-        
-        # 後始末-不要になったので削除
+        #v112:（AddField_management  ではWarningでフィールド名をリネームして処理が継続されるため）フィールド名が変更されたものがないかの確認
+        new_lstFields = arcpy.ListFields(fc)
+        new_field_names = [f.name for f in new_lstFields]
+        blFieldsCheck = calgen.check_added_field_names(new_field_names, update_fields)
+        if blFieldsCheck:
+            if len(update_fields) > 0:           
+                arcpy.AddMessage(u"{0}: のフィールドに値を展開します".format(update_fields))
+                i = 0
+                cnt = 0
+                with arcpy.da.UpdateCursor(fc, update_fields) as cur:
+                    for r in cur:
+                        cnt += 1
+                        if (cnt == 1) or (cnt == num) or (cnt % 10000 == 1):
+                            s = u"{0}/{1}の xml_genericAttributeSet  展開処理中・・・".format(cnt, num)
+                            arcpy.AddMessage(s)
+                        r = df.values[i] # 1行を取得
+                        cur.updateRow(r) # update_fieldsに指定したものが DataFrame のカラムの並び順なのでそのまま渡す
+                        i += 1
+            else:
+                arcpy.AddWarning(u"対象フィールド が存在しないため、xml_genericAttributeSet  展開処理はスキップしました") 
 
-        arcpy.AddMessage(u"xml_genericAttributeSet　展開処理を終了しました")
+            # 後始末-不要になったので削除                
+        else:
+            arcpy.AddWarning(u"AddField_management の処理でフィールド名が変更されたものがあるため、xml_genericAttributeSet の展開処理はスキップしました")
+
+
+        arcpy.AddMessage(u"xml_genericAttributeSet  展開処理を終了しました")
     except arcpy.ExecuteError:
         arcpy.AddError(arcpy.GetMessages(2))
         blResult = False
     except Exception as e:
-        arcpy.AddError(e.args[0])
+        err = e.args[0]
+        tb = sys.exc_info()[2]
+        tbinfo = traceback.format_tb(tb)[0]
+        pymsg = "PYTHON ERRORS:\nTraceback info:\n" + tbinfo + "\nError Info:\n" + str(err)
+        arcpy.AddError(pymsg)        
         blResult = False
     
     return blResult, df
@@ -145,8 +163,11 @@ def main():
             # 作成したドメインにコードと説明を追加
             for code in domainDict:
                 codeDesc = domainDict[code]
-                arcpy.AddMessage(u"{0}: ドメイン に{1} , {2} のコードを追加します".format(domainName,code, codeDesc))
-                arcpy.AddCodedValueToDomain_management(gdb, domainName, code, codeDesc)
+                if len(codeDesc.strip()) > 0: #v112: codeDesc  が空文字の場合への対応                
+                    arcpy.AddMessage(u"{0}: ドメイン に{1} , {2} のコードを追加します".format(domainName,code,codeDesc))
+                    arcpy.AddCodedValueToDomain_management(gdb, domainName, code, codeDesc)
+                else:
+                    arcpy.AddWarning(u"{0}: ドメイン に追加する{1} , にコード値の説明がないので処理をスキップします".format(domainNamecode,code))               
                 #print("Add code " code)
         else:
             arcpy.AddWarning(u"{0}: ドメイン はすでに存在しているので、ドメイン 作成の処理はスキップします".format(domainName))
@@ -168,7 +189,7 @@ def main():
                         else:
                             arcpy.AddWarning(u"{0} に{1} フィールドが定義されていないため、ドメインの適用をスキップします".format(fc, fieldName))
                     
-                    #　後始末
+                    # 後始末
                     del df
                 else:
                     arcpy.AddWarning(u"{0} の レコードがないため処理をスキップします".format(fc))
@@ -177,7 +198,11 @@ def main():
     except arcpy.ExecuteError:
         arcpy.AddError(arcpy.GetMessages(2))
     except Exception as e:
-        arcpy.AddError(e.args[0])
+        err = e.args[0]
+        tb = sys.exc_info()[2]
+        tbinfo = traceback.format_tb(tb)[0]
+        pymsg = "PYTHON ERRORS:\nTraceback info:\n" + tbinfo + "\nError Info:\n" + str(err)
+        arcpy.AddError(pymsg)
 
 if __name__ == '__main__':
     main()
