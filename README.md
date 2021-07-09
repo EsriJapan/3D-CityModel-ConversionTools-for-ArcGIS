@@ -40,11 +40,11 @@
 ※ 変換されるファイル ジオデータベースの詳細な定義は、[3D 都市モデルデータ変換ツール for ArcGIS 操作マニュアルの付属資料](https://github.com/EsriJapan/3D-CityModel-ConversionTools-for-ArcGIS/blob/main/Doc/3D%E9%83%BD%E5%B8%82%E3%83%A2%E3%83%87%E3%83%AB%E3%83%87%E3%83%BC%E3%82%BF%E5%A4%89%E6%8F%9B%E3%83%84%E3%83%BC%E3%83%AB%20for%20ArcGIS%E6%93%8D%E4%BD%9C%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB%201.1.4%E7%89%88%EF%BC%88%E6%9D%B1%E4%BA%AC23%E5%8C%BA%E3%83%BB55%E9%83%BD%E5%B8%82%E7%89%88%EF%BC%89_%E4%BB%98%E5%B1%9E%E8%B3%87%E6%96%99.xlsx)をご参照ください。
 
 ## 動作環境
-本ツールを実行するには、バージョン 2.6 以上のArcGIS Pro とData Interoperability エクステンション をインストールし、ライセンスを有効化している必要があります。  ※ArcGIS Pro とArcGIS Data Interoperability のインストーラーは、それぞれ別々に提供されて
-おります。My Esri からそれぞれのインストーラーを入手いただき、インストールして頂く必要があります。  
+本ツールを実行するには、バージョン 2.6 以上のArcGIS Pro とData Interoperability エクステンション をインストールし（ArcGIS Pro とArcGIS Data Interoperability のインストーラーは、それぞれ別々に提供されております。My Esri からそれぞれのインストーラーを入手いただき、インストールして頂く必要があります）、ライセンスを有効化している必要があります。  
 詳細な動作環境、およびData Interoperability エクステンション のインストール方法は、以下をご参照ください。
 * [ArcGIS Pro の動作環境](https://www.esrij.com/products/arcgis-desktop/environments/arcgis-pro/)
-* [Data Interoperability エクステンションのインストール](https://pro.arcgis.com/ja/pro-app/latest/help/data/data-interoperability/install-the-data-interoperability-extension.htm)
+* [Data Interoperability エクステンションのインストール](https://pro.arcgis.com/ja/pro-app/latest/help/data/data-interoperability/install-the-data-interoperability-extension.htm)  
+※ ArcGIS Pro 2.8　のData Interoperability（対応するFME のバージョン：2021.0.0.0）では、現在のところ、変換ツールのインポートツールに含まれるFeatureJoinerのトランスフォーマーが、正常に動作しない現象が確認されており、現在改善に向け取り組んでおります。本ツールをご利用いただく場合は、ArcGIS Pro 2.8 へのアップグレードをお控えいただくようお願いします。
 
 ### 利用方法
 本ツールを使って変換するまでには、大まかに次のステップが必要です。操作方法の詳細は[3D 都市モデルデータ変換ツール for ArcGIS 操作マニュアル](https://github.com/EsriJapan/3D-CityModel-ConversionTools-for-ArcGIS/blob/main/Doc/3D%E9%83%BD%E5%B8%82%E3%83%A2%E3%83%87%E3%83%AB%E3%83%87%E3%83%BC%E3%82%BF%E5%A4%89%E6%8F%9B%E3%83%84%E3%83%BC%E3%83%AB%20for%20ArcGIS%E6%93%8D%E4%BD%9C%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB%201.1.4%E7%89%88%EF%BC%88%E6%9D%B1%E4%BA%AC23%E5%8C%BA%E3%83%BB55%E9%83%BD%E5%B8%82%E7%89%88%EF%BC%89.pdf) をご参照ください。
