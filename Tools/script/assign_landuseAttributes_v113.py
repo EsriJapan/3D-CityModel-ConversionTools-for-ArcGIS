@@ -18,10 +18,12 @@ Purpose     :3D都市モデルで土地利用（luse）は、自治体拡張が�
              ・例外発生時のtraceback を追加
              ・xml_genericAttributeSet の展開前に、AddField_management で追加したフィールド名の変更されていないか確認処理を追加（calgenの呼び出しで対応）
              ・コード値に対応する説明がない不正なデータはスキップするよう処理を追加             
+            v112 → v113 の更新内容
+             ・コード値ドメインの適用を"土地利用区分" の文字を含むフィールドに限定
 Author      :
 Copyright   :
 Created     :2021/03/25
-Last Updated:2021/06/30
+Last Updated:2021/08/17
 ArcGIS Version: ArcGIS Pro 2.6 以上
 """
 import arcpy
@@ -184,8 +186,12 @@ def main():
                     for column in df.columns:
                         fieldName, fieldType = column.split(":")
                         if fieldName in fieldNames:
-                            arcpy.AddMessage(u"{0} の{1} フィールドに{2} ドメインを適用します".format(fc, fieldName, domainName))
-                            arcpy.AssignDomainToField_management(fc, fieldName, domainName)
+                            # v113:フィールド名に"土地利用区分" を含む "gen_土地利用区分_XXXX" などのフィールドのみに土地利用のコード値ドメインを適用
+                            if domainDesc in fieldName:
+                                arcpy.AddMessage(u"{0} の{1} フィールドに{2} ドメインを適用します".format(fc, fieldName, domainName))
+                                arcpy.AssignDomainToField_management(fc, fieldName, domainName)
+                            else:
+                                arcpy.AddWarning(u"{0} の{1} フィールドは土地利用区分ではないため、{2} ドメインの適用をスキップします".format(fc, fieldName, domainName))
                         else:
                             arcpy.AddWarning(u"{0} に{1} フィールドが定義されていないため、ドメインの適用をスキップします".format(fc, fieldName))
                     
