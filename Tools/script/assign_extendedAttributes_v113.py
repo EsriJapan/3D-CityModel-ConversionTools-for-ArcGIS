@@ -12,10 +12,12 @@ Purpose     :3D都市モデルで拡張属性の定義が標準対応、およ�
             v111 → v112 の更新内容
              ・コード値に対応する説明がない不正なデータはスキップするよう処理を追加
              ・例外発生時のtraceback を追加            
+            v112  → v113 の更新内容
+             ・フィールド名のエイリアスに、ドメインの説明を適用する処理を追加
 Author      :
 Copyright   :
 Created     :2021/03/24
-Last Updated:2021/07/08
+Last Updated:2021/09/08
 ArcGIS Version: ArcGIS Pro 2.6 以上
 """
 import arcpy
@@ -160,6 +162,7 @@ def main():
                             if fieldName in fieldNames:
                                 arcpy.AddMessage(u"{0} の{1} フィールドに{2} ドメインを適用します".format(fc, fieldName, domainName))
                                 arcpy.AssignDomainToField_management(fc, fieldName, domainName)
+                                arcpy.AlterField_management(fc, fieldName, new_field_alias=domainDesc) #v113: フィールドエイリアスをドメインの説明にする
                             else:
                                 arcpy.AddWarning(u"{0} に{1} フィールドが定義されていないため、ドメインの適用をスキップします".format(fc, fieldName))
 
