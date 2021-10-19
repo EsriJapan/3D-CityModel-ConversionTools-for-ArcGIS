@@ -16,10 +16,13 @@ https://community.safe.com/s/article/batch-processing-method-2-command-file-1
 ※2 複数ファイルをデータソースとして渡す場合は、Help に書いてあるダブルクオートの前にバックスラッシュを入れる\
 c:\temp\command.fmw --SourceDataset_ACAD "\"\"C:\FMEData\Data\Water\distribution_L25.dwg\" \"C:\FMEData\Data\Water\distribution_L26.dwg\"\"" --DestDataset_DGNV8 c:\temp\output.dgn
 
+10/19の更新： 
+・v118用にiur1.4のxsdスキーマファイルを指定できるように更新
+
 Author      :
 Copyright   :
 Created     :2021/06/08
-LastUpdated :2021/07/09
+LastUpdated :2021/10/19
 ArcGIS Version: ArcGIS Pro 2.6 以上
 """
 
@@ -31,6 +34,7 @@ import winreg
 PARAM1_SOURCE_DATASET=r"--SourceDataset_CITYGML"
 PARAM2_TEMPLATE_XML=r"--TEMPLATEFILE_GEODATABASE_FILE"
 PARAM3_DEST_DATASET=r"--DestDataset_GEODATABASE_FILE"
+PARAM4_ADE_XSD=r"--ADE_XSD_DOC_CITYGML"
 
 #FME_EXE_PATH=r"C:\Program Files\ArcGIS\Data Interoperability for ArcGIS Pro\fme.exe"
 PARAM_PARAMETER_FILE=r"PARAMETER_FILE"
@@ -69,7 +73,7 @@ def createMultipleDatasetPath(files):
     sfiles = "\\\"{}\\\"".format(sfiles)
     return sfiles
 
-def createParameterFile(fmw_model, citygml_folders, schema_xml, output_gdb, param_file):
+def createParameterFile(fmw_model, citygml_folders, schema_xml, output_gdb, param_file, xsd_file):
     '''
     >fme.exe PARAMETER_FILE <parameterFile>
     での実行用にparameterFile　を作成する
@@ -79,6 +83,7 @@ def createParameterFile(fmw_model, citygml_folders, schema_xml, output_gdb, para
         param0 = "\"{0}\"".format(fmw_model)
         param2 = "{0} \"{1}\"".format(PARAM2_TEMPLATE_XML, schema_xml)
         param3 = "{0} \"{1}\"".format(PARAM3_DEST_DATASET, output_gdb)
+        param4 = "{0} \"{1}\"".format(PARAM4_ADE_XSD, xsd_file)
         #単独フォルダ：
         #files = glob.glob(citygml_folder + os.path.sep + "*.gml")
         #files_param = createMultipleDatasetPath(files)
@@ -92,6 +97,10 @@ def createParameterFile(fmw_model, citygml_folders, schema_xml, output_gdb, para
         param1 = "{0} \"{1}\"".format(PARAM1_SOURCE_DATASET, files_param)
         
         params = "{0} {1} {2} {3}".format(param0, param1, param2, param3)
+        #v118用にiur1.4のxsdスキーマファイルを指定
+        if xsd_file is not None:
+            params = "{0} {1} {2} {3} {4}".format(param0, param1, param2, param3, param4)
+            
         with open(param_file, 'w', encoding='shift_jis') as f:
             f.write(params)
     except Exception as e:
@@ -121,13 +130,18 @@ def main():
         #出力するパラメータファイル
         param_file = arcpy.GetParameterAsText(4) #"ConvBuilding.par"
         
+        #v118用にiur1.4のxsdスキーマファイルを指定
+        xsd_file = None
+        if arcpy.GetArgumentCount() == 6:
+            xsd_file = arcpy.GetParameterAsText(5)
+        
         #チェック
         
         #パラメータファイルの中身を作成
 
         
         #パラメータファイルをSJISファイルとして保存
-        blResult = createParameterFile(fmw_model, citygml_folders, schema_xml, output_gdb, param_file)      
+        blResult = createParameterFile(fmw_model, citygml_folders, schema_xml, output_gdb, param_file, xsd_file)      
 
         if blResult:
             arcpy.AddMessage(u"PARAMETER_FILEの作成終了")
