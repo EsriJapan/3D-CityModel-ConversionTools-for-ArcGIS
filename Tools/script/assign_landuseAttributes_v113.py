@@ -23,7 +23,7 @@ Purpose     :3D都市モデルで土地利用（luse）は、自治体拡張が�
 Author      :
 Copyright   :
 Created     :2021/03/25
-Last Updated:2021/08/17
+Last Updated:2021/12/17
 ArcGIS Version: ArcGIS Pro 2.6 以上
 """
 import arcpy
@@ -34,7 +34,7 @@ import traceback #v112
 
 # 使いまわし可能な関数がそれぞれをimport 
 import calculate_genericAttributeSet_field_v112 as calgen
-import assign_extendedAttributes_v112 as exattr
+import assign_extendedAttributes_v113 as exattr
 
 #ワークベンチで処理した結果を格納してあるフィールド名
 XMLFIELDNAME = "xml_genericAttributeSet"
