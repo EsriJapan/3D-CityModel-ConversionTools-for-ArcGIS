@@ -1,0 +1,4 @@
+フィーチャクラス;エイリアス;クエリ
+lod0_AreaClassification_cigaika;市街化区域・市街化調整区域・非線引き区域;urf_class in ('22','23','24','25')
+lod0_AreaClassification_kyojuyudo;居住誘導区域;urf_class in ('31')
+lod0_AreaClassification_tosiyudo;都市機能誘導区域;urf_class in ('32')
