@@ -1,9 +1,9 @@
 # 3D-CityModel-ConversionTools-for-ArcGIS
 # 概要
 「3D 都市モデルデータ変換ツール for ArcGIS」 は、[PLATEAU](https://www.mlit.go.jp/plateau/) で整備し、G空間情報センターで公開している[3D都市モデル](https://www.geospatial.jp/ckan/dataset/plateau)（CityGML）のデータを、ArcGIS で利用可能な[ファイル ジオデータベース](https://pro.arcgis.com/ja/pro-app/latest/help/data/geodatabases/manage-file-gdb/file-geodatabases.htm) へ変換するツールです。  
-本ツールで変換可能なデータは、[3D 都市モデル標準製品仕様書 series No.01（2021/03/26　1.0.0版）](https://www.mlit.go.jp/plateau/file/libraries/doc/plateau_doc_0001_ver01.pdf) に対応した 3D都市モデル（東京 23 区、および全国55都市）です。  
-本ツールは、国土交通省の[Project PLATEAU](https://www.mlit.go.jp/plateau/) で、国土交通省都市局、国際航業株式会社、ESRIジャパン株式会社が共同で作成・開発したものです。
-  
+本ツールで変換可能なデータは、[3D都市モデル標準製品仕様書 series No.01（2021/03/26　1.0.0版）](https://www.mlit.go.jp/plateau/file/libraries/doc/plateau_doc_0001_ver01.pdf) に対応した 3D都市モデル（東京 23 区、および全国55都市）です。  [製品仕様書 第2.3版（3D 都市モデル標準製品仕様書 series No.01（2022/09/23 2.3版））](https://www.mlit.go.jp/plateau/file/libraries/doc/plateau_doc_0001_ver02.pdf) に対応した v2 データに対応した変換ツールは [こちら](https://github.com/EsriJapan/3D-CityModel-ConversionTools-for-ArcGIS-v2) をご利用ください。  
+本ツールは、国土交通省の[Project PLATEAU](https://www.mlit.go.jp/plateau/) で、国土交通省都市局、国際航業株式会社、ESRIジャパン株式会社が共同で作成・開発したものです。  
+
 ### 更新履歴
 * 2021/05/18 ： 「3D 都市モデルデータ変換ツール for ArcGIS」バージョン1.1.1 を公開
 * 2021/05/31 ： 「3D 都市モデルデータ変換ツール for ArcGIS」バージョン1.1.2 を公開
@@ -54,9 +54,10 @@
 詳細な動作環境、およびData Interoperability エクステンション のインストール方法は、以下をご参照ください。
 * [ArcGIS Pro の動作環境](https://www.esrij.com/products/arcgis-desktop/environments/arcgis-pro/)
 * [Data Interoperability エクステンションのインストール](https://pro.arcgis.com/ja/pro-app/latest/help/data/data-interoperability/install-the-data-interoperability-extension.htm)  
-※ ArcGIS Pro 2.8　のData Interoperability（対応するFME のバージョン：2021.0.0.0）では、現在のところ、変換ツールのインポートツールに含まれるFeatureJoinerのトランスフォーマーが、正常に動作しない現象が確認されております。  
-また、ArcGIS Pro 2.9のData Interoperability（対応するFME のバージョン：2021.1.2.0）では、本ツールのバージョン1.1.9で一部変更したもので、正常に動作することが確認されております。
-そのため、本ツールをご利用いただく場合は、ArcGIS Pro 2.8 のData Interoperabilityへのアップグレードはスキップし、ArcGIS Pro 2.9 のData Interoperabilityと、本ツールのバージョン1.1.9以上と組み合わせてお使いいただくようお願いします。
+※1: ArcGIS Pro 2.8　のData Interoperability（対応するFME のバージョン：2021.0.0.0）では、現在のところ、変換ツールのインポートツールに含まれるFeatureJoinerのトランスフォーマーが、正常に動作しない現象が確認されております。  
+また、ArcGIS Pro 2.9 のData Interoperability（対応するFME のバージョン：2021.1.2.0）では、本ツールのバージョン1.1.9 で一部変更したもので、正常に動作することが確認されております。
+そのため、本ツールをご利用いただく場合は、ArcGIS Pro 2.8 のData Interoperabilityへのアップグレードはスキップし、ArcGIS Pro 2.9 のData Interoperabilityと、本ツールのバージョン1.1.9 以上と組み合わせてお使いいただくようお願いします。  
+※2: ArcGIS Pro 3.x 系統での本ツールの動作確認はしておりません。ArcGIS Pro 3.x 系統で3D都市モデルのデータを変換したい場合は、 v2 データとそれに対応した [変換ツール](https://github.com/EsriJapan/3D-CityModel-ConversionTools-for-ArcGIS-v2) をご利用ください。  
 
 ### 利用方法
 本ツールを使って変換するまでには、大まかに次のステップが必要です。操作方法の詳細は[3D 都市モデルデータ変換ツール for ArcGIS 操作マニュアル](https://github.com/EsriJapan/3D-CityModel-ConversionTools-for-ArcGIS/blob/main/Doc/3D%E9%83%BD%E5%B8%82%E3%83%A2%E3%83%87%E3%83%AB%E3%83%87%E3%83%BC%E3%82%BF%E5%A4%89%E6%8F%9B%E3%83%84%E3%83%BC%E3%83%AB%20for%20ArcGIS%E6%93%8D%E4%BD%9C%E3%83%9E%E3%83%8B%E3%83%A5%E3%82%A2%E3%83%AB%201.2.1%E7%89%88%EF%BC%88%E6%9D%B1%E4%BA%AC23%E5%8C%BA%E3%83%BB55%E9%83%BD%E5%B8%82%E7%89%88%EF%BC%89.pdf) をご参照ください。
